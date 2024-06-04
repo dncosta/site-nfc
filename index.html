@@ -48,10 +48,18 @@
                     ndef.onreading = event => {
                         const decoder = new TextDecoder();
                         let message = "NFC tag detected!\n";
+                        let hasData = false;
                         for (const record of event.message.records) {
                             message += `Record type: ${record.recordType}\n`;
-                            message += `MIME type: ${record.mediaType}\n`;
-                            message += `Data: ${decoder.decode(record.data)}\n\n`;
+                            if (record.recordType === "text") {
+                                message += `Data: ${decoder.decode(record.data)}\n\n`;
+                                hasData = true;
+                            } else {
+                                message += `Data type not supported for display.\n\n`;
+                            }
+                        }
+                        if (!hasData) {
+                            message += "No readable data found on the tag.";
                         }
                         contentDiv.textContent = message;
                     };
