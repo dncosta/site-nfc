@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFC Scan</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+        }
+        #scanButton {
+            padding: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            background-color: #4CAF50;
+            color: white;
+        }
+        #content {
+            margin-top: 20px;
+            font-size: 18px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <button id="scanButton">Scan</button>
+        <div id="content"></div>
+    </div>
+    <script>
+        const scanButton = document.getElementById('scanButton');
+        const contentDiv = document.getElementById('content');
+
+        async function scanNFC() {
+            contentDiv.textContent = "Starting NFC scan...";
+            if ('NDEFReader' in window) {
+                try {
+                    const ndef = new NDEFReader();
+                    await ndef.scan();
+                    contentDiv.textContent = "Scanning for NFC tags...";
+                    ndef.onreading = event => {
+                        const decoder = new TextDecoder();
+                        let message = "NFC tag detected!\n";
+                        for (const record of event.message.records) {
+                            message += `Record type: ${record.recordType}\n`;
+                            message += `MIME type: ${record.mediaType}\n`;
+                            message += `Data: ${decoder.decode(record.data)}\n\n`;
+                        }
+                        contentDiv.textContent = message;
+                    };
+                    ndef.onreadingerror = () => {
+                        contentDiv.textContent = "NFC reading failed: No NFC tag found.";
+                    };
+                } catch (error) {
+                    console.log("NFC reading failed: ", error);
+                    contentDiv.textContent = "NFC reading failed: " + error.message;
+                }
+            } else {
+                contentDiv.textContent = "Web NFC API not supported in this browser.";
+            }
+        }
+
+        scanButton.addEventListener('click', scanNFC);
+    </script>
+</body>
+</html>
